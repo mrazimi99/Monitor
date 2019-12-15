@@ -12,16 +12,16 @@ int main()
 
 	for (auto const& path : pathes)
 	{
-		vector<Edge> this_edges;
+		vector<Edge*> this_edges;
 
 		for (int index = 1; index < path.first.length(); ++index)
 		{
 			string name = string(1, path.first[index - 1]) + string(1, path.first[index]);
 
-			for (auto const& edge : edges)
+			for (auto& edge : edges)
 			{
 				if (name == edge.get_name())
-					this_edges.push_back(edge);
+					this_edges.push_back(&edge);
 			}
 		}
 

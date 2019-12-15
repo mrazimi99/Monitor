@@ -102,7 +102,7 @@ void Edge::release()
 }
 
 void parse_input(string file_name, vector<Edge>& edges, map<string, int>& pathes);
-void go(int p, vector<Edge> edges, int path_number, int car_number);
+void go(int p, vector<Edge*> edges, int path_number, int car_number);
 
 void parse_input(string file_name, vector<Edge>& edges, map<string, int>& pathes)
 {
@@ -130,7 +130,7 @@ void parse_input(string file_name, vector<Edge>& edges, map<string, int>& pathes
 	}
 }
 
-void go(int p, vector<Edge> edges, int path_number, int car_number)
+void go(int p, vector<Edge*> edges, int path_number, int car_number)
 {
 	double population;
 	string file_name = to_string(path_number) + "-" + to_string(car_number);
@@ -138,19 +138,20 @@ void go(int p, vector<Edge> edges, int path_number, int car_number)
 
 	for (auto& edge : edges)
 	{
-		edge.acquire();
-		chrono::microseconds enter = chrono::duration_cast<chrono::microseconds>(chrono::system_clock::now().time_since_epoch());
+		edge->acquire();
+		chrono::milliseconds enter = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 		population = 0;
 
 		for (size_t i = 0; i <= 10e7; i++)
-			population += i / (10e6 * p * edge.get_hardness());
-
-		chrono::microseconds exit = chrono::duration_cast<chrono::microseconds>(chrono::system_clock::now().time_since_epoch());
-		edge.release();
+			population += i / (10e6 * p * edge->get_hardness());
 
 		Edge::acquire_total_emission_semaphore();
 		Edge::increase_total_emission(population);
 		Edge::release_total_emission_semaphore();
-		output << edge.get_name()[0] << "," << enter.count() << "," << edge.get_name()[1] << "," << exit.count() << "," << population << "," << Edge::get_total_emission() << endl;
+
+		chrono::milliseconds exit = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+		edge->release();
+
+		output << edge->get_name()[0] << "," << enter.count() << "," << edge->get_name()[1] << "," << exit.count() << "," << population << "," << Edge::get_total_emission() << endl;
 	}
 }
