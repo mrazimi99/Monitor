@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <chrono>
 #include <vector>
 #include <map>
 #include <thread>
@@ -20,6 +21,7 @@ public:
 	inline static void increase_total_emission(unsigned int value);
 	inline static void acquire_total_emission_semaphore();
 	inline static void release_total_emission_semaphore();
+	inline static void destroy_total_emission_semaphore();
 	inline int get_hardness() const;
 	inline string get_name() const;
 	inline void acquire();
@@ -62,6 +64,11 @@ void Edge::acquire_total_emission_semaphore()
 void Edge::release_total_emission_semaphore()
 {
 	sem_post(&total_emission_semaphore);
+}
+
+void Edge::destroy_total_emission_semaphore()
+{
+	sem_destroy(&total_emission_semaphore);
 }
 
 double Edge::get_total_emission()
@@ -132,18 +139,18 @@ void go(int p, vector<Edge> edges, int path_number, int car_number)
 	for (auto& edge : edges)
 	{
 		edge.acquire();
-		time_t enter = time(NULL);
+		chrono::microseconds enter = chrono::duration_cast<chrono::microseconds>(chrono::system_clock::now().time_since_epoch());
 		population = 0;
 
-		for (size_t i = 0; i < 10e7; i++)
+		for (size_t i = 0; i <= 10e7; i++)
 			population += i / (10e6 * p * edge.get_hardness());
 
-		time_t exit = time(NULL);
+		chrono::microseconds exit = chrono::duration_cast<chrono::microseconds>(chrono::system_clock::now().time_since_epoch());
 		edge.release();
 
 		Edge::acquire_total_emission_semaphore();
 		Edge::increase_total_emission(population);
 		Edge::release_total_emission_semaphore();
-		output << edge.get_name()[0] << "," << enter << "," << edge.get_name()[1] << "," << exit << "," << population << "," << Edge::get_total_emission() << endl;
+		output << edge.get_name()[0] << "," << enter.count() << "," << edge.get_name()[1] << "," << exit.count() << "," << population << "," << Edge::get_total_emission() << endl;
 	}
 }

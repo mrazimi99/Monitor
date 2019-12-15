@@ -36,4 +36,6 @@ int main()
 
 	for (auto& car : cars)
 		car.join();
+
+	Edge::release_total_emission_semaphore();
 }
